@@ -1,0 +1,70 @@
+:root {
+  /* ... existing code ... */
+  background-color: #2c2f33; /* A slightly softer dark color */
+  background-image: linear-gradient(135deg, #2c2f33 0%, #1a1c1e 100%);
+  color: #c9c9c9; /* Softer text color for better readability */
+}
+
+/* Updated hover color for better contrast */
+a:hover {
+  color: #7289da; /* A cool blue, often used in modern UIs */
+}
+
+.auth-container, .list-item, .question {
+  background: #23272a; /* A darker background for the card itself */
+  border: 1px solid #36393f;
+  border-radius: 10px; /* Slightly more rounded corners */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.auth-container:hover, .list-item:hover, .question:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.form input {
+  /* ... existing code ... */
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+  max-width: 1100px; /* Slightly wider for more content */
+  padding: 32px; /* Increased padding */
+}
+
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px; /* More space below the header */
+  padding-bottom: 16px;
+  border-bottom: 1px solid #444; /* Subtle separator */
+}
+
+.questions {
+  display: grid;
+  gap: 24px; /* More space between questions */
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* More space between radio button and text */
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid transparent; /* Thicker border for selected state */
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: #2a2e30;
+}
+
+.option.selected {
+  border-color: #7289da; /* The cool blue from the link */
+  background: #36393f;
+  box-shadow: 0 0 8px rgba(114, 137, 218, 0.3); /* A soft glowing shadow */
+}
+
+
