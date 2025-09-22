@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: online_examination_system
+    ports:
+      - "80:80"

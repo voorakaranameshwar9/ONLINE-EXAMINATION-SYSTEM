@@ -1,0 +1,22 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# No build step needed for backend
+# RUN npm run build   <-- REMOVE THIS
+
+# -------- Run stage --------
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app .
+
+EXPOSE 5000 
+
+CMD ["npm", "start"]
