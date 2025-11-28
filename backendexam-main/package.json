@@ -4,10 +4,10 @@
   "description": "I built this small Spring Boot project for managing online exams. It includes basic authentication (Spring Security), exam creation, question management, and result processing. The app uses an H2 in-memory database for demo purposes.",
   "main": "index.js",
   "scripts": {
-  "start": "node server.js"
-}
-
-  ,"keywords": [],
+    "start": "node server.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -15,4 +15,5 @@
     "cors": "^2.8.5",
     "express": "^5.1.0"
   }
+  
 }

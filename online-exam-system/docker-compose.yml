@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # This is the frontend service
+  frontend:
+    build: ./frontend  # Tells Docker to find the Dockerfile in the 'frontend' sub-directory
+    ports:
+      - "3001:80"       # Maps port 3000 on your machine to port 80 in the container
+    restart: always
+
+  # This is the backend service
+  backend:
+    build: ./backend    # Tells Docker to find the Dockerfile in the 'backend' sub-directory
+    ports:
+      - "5001:5000"     # Maps port 5000 on your machine to port 5000 in the container
+    depends_on:
+      - frontend        # Ensures the frontend container starts after the backend
+    restart: always
+
+volumes:
+  node_modules:

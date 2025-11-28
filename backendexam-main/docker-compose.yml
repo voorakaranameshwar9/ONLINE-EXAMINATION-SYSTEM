@@ -6,3 +6,9 @@ services:
     container_name: online_examination_system
     ports:
       - "80:80"
+  backend:
+    build: ./backendexam-main
+    environment:
+      - JWT_SECRET=supersecretkey1234567890
+    ports:
+      - "3000:8080" # if Spring Boot runs on 8080 by default

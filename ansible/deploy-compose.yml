@@ -1,0 +1,51 @@
+---
+# Playbook to deploy using docker-compose on a remote server
+- hosts: docker_hosts
+  gather_facts: yes
+  vars:
+    project_root: "/opt/online-examination-system"
+    docker_registry: "voorakaranameshwar9"
+    frontend_image: "{{ docker_registry }}/online-exam-system:latest"
+    backend_image: "{{ docker_registry }}/backendexam:latest"
+
+  tasks:
+    - name: "Create project directory"
+      file:
+        path: "{{ project_root }}"
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: "Copy docker-compose.yml"
+      template:
+        src: docker-compose.template.yml
+        dest: "{{ project_root }}/docker-compose.yml"
+        mode: '0644'
+      become: yes
+
+    - name: "Pull latest Docker images"
+      shell: |
+        docker pull {{ frontend_image }}
+        docker pull {{ backend_image }}
+      become: yes
+
+    - name: "Start services with docker-compose"
+      shell: "cd {{ project_root }} && docker-compose up -d"
+      become: yes
+      register: compose_result
+
+    - name: "Print docker-compose output"
+      debug:
+        msg: "{{ compose_result.stdout }}"
+
+    - name: "Wait for services to be healthy"
+      shell: "docker-compose -f {{ project_root }}/docker-compose.yml ps"
+      become: yes
+      register: compose_status
+      until: "'Exit' not in compose_status.stdout"
+      retries: 5
+      delay: 10
+
+    - name: "Print service status"
+      debug:
+        msg: "{{ compose_status.stdout }}"

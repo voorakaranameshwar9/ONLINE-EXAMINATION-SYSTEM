@@ -1,0 +1,43 @@
+---
+# Playbook to build Docker images locally
+- hosts: localhost
+  gather_facts: no
+  vars:
+    docker_registry: "voorakaranameshwar9"
+    frontend_image_name: "online-exam-system"
+    backend_image_name: "backendexam"
+    image_tag: "latest"
+    project_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: "Print build info"
+      debug:
+        msg: "Building Docker images: {{ docker_registry }}/{{ frontend_image_name }}:{{ image_tag }} and {{ docker_registry }}/{{ backend_image_name }}:{{ image_tag }}"
+
+    - name: "Build frontend Docker image"
+      docker_image:
+        name: "{{ docker_registry }}/{{ frontend_image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "{{ project_root }}/online-exam-system"
+          dockerfile: Dockerfile
+      register: frontend_build
+
+    - name: "Print frontend build result"
+      debug:
+        msg: "Frontend image built: {{ frontend_build }}"
+
+    - name: "Build backend Docker image"
+      docker_image:
+        name: "{{ docker_registry }}/{{ backend_image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "{{ project_root }}/backendexam-main"
+          dockerfile: Dockerfile
+      register: backend_build
+
+    - name: "Print backend build result"
+      debug:
+        msg: "Backend image built: {{ backend_build }}"

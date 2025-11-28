@@ -1,0 +1,50 @@
+---
+# Playbook to push Docker images to Docker Hub
+- hosts: localhost
+  gather_facts: no
+  vars:
+    docker_registry: "voorakaranameshwar9"
+    docker_registry_username: "{{ docker_hub_username | default('voorakaranameshwar9') }}"
+    docker_registry_password: "{{ docker_hub_token | default('') }}"
+    frontend_image_name: "online-exam-system"
+    backend_image_name: "backendexam"
+    image_tag: "latest"
+
+  tasks:
+    - name: "Check Docker Hub credentials"
+      fail:
+        msg: "Docker Hub token not provided. Run with: ansible-playbook push.yml -e docker_hub_token=YOUR_TOKEN"
+      when: docker_registry_password == ""
+
+    - name: "Log in to Docker Hub"
+      docker_login:
+        registry_url: "docker.io"
+        username: "{{ docker_registry_username }}"
+        password: "{{ docker_registry_password }}"
+      no_log: yes
+
+    - name: "Push frontend image to Docker Hub"
+      docker_image:
+        name: "{{ docker_registry }}/{{ frontend_image_name }}"
+        tag: "{{ image_tag }}"
+        source: local
+        push: yes
+        repository: "{{ docker_registry }}/{{ frontend_image_name }}:{{ image_tag }}"
+      register: frontend_push
+
+    - name: "Print frontend push result"
+      debug:
+        msg: "Frontend image pushed: {{ frontend_push }}"
+
+    - name: "Push backend image to Docker Hub"
+      docker_image:
+        name: "{{ docker_registry }}/{{ backend_image_name }}"
+        tag: "{{ image_tag }}"
+        source: local
+        push: yes
+        repository: "{{ docker_registry }}/{{ backend_image_name }}:{{ image_tag }}"
+      register: backend_push
+
+    - name: "Print backend push result"
+      debug:
+        msg: "Backend image pushed: {{ backend_push }}"

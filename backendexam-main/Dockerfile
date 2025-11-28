@@ -1,22 +1,20 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-# No build step needed for backend
-# RUN npm run build   <-- REMOVE THIS
-
-# -------- Run stage --------
+# Set the base image
 FROM node:20-alpine
 
+# Set the working directory inside the container
 WORKDIR /app
 
-COPY --from=builder /app .
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-EXPOSE 5000 
+# Install dependencies
+RUN npm install
 
-CMD ["npm", "start"]
+# Copy all other project files, including server.js
+COPY . .
+
+# Expose the port your app runs on
+EXPOSE 3000
+
+# Command to run your application
+CMD ["node", "server.js"]

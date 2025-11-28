@@ -1,6 +1,10 @@
 package com.example.exam;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.*;
 
 @RestController
@@ -16,18 +20,55 @@ public class ExamController {
     }
 
     @PostMapping
-    public Exam createExam(@RequestBody Exam exam) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Exam> createExam(@RequestBody Exam exam) {
+        if (exam == null) return ResponseEntity.badRequest().build();
         if (exam.getQuestions() != null) {
             for (Question q : exam.getQuestions()) {
                 q.setExam(exam);
             }
         }
-        return examRepo.save(exam);
+        Exam saved = examRepo.save(exam);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public List<Exam> getAllExams() {
         return examRepo.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Exam> getExamById(@PathVariable Long id) {
+        return examRepo.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Exam> updateExam(@PathVariable Long id, @RequestBody Exam exam) {
+        return examRepo.findById(id).map(existing -> {
+            existing.setTitle(exam.getTitle());
+            // replace questions: ensure relationship is set
+            existing.getQuestions().clear();
+            if (exam.getQuestions() != null) {
+                for (Question q : exam.getQuestions()) {
+                    q.setExam(existing);
+                    existing.getQuestions().add(q);
+                }
+            }
+            Exam saved = examRepo.save(existing);
+            return ResponseEntity.ok(saved);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
+        if (!examRepo.existsById(id)) return ResponseEntity.notFound().build();
+        examRepo.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     // DTOs
@@ -42,16 +83,30 @@ public class ExamController {
     }
 
     @PostMapping("/{examId}/submit")
-    public Result submitExam(@PathVariable Long examId, @RequestBody SubmitRequest req) {
-        Exam exam = examRepo.findById(examId).orElseThrow();
+    public ResponseEntity<Result> submitExam(@PathVariable Long examId, @RequestBody SubmitRequest req) {
+        if (req == null || req.username == null || req.answers == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<Exam> maybeExam = examRepo.findById(examId);
+        if (maybeExam.isEmpty()) return ResponseEntity.notFound().build();
+        Exam exam = maybeExam.get();
+
         Map<Long, String> correct = new HashMap<>();
-        for (Question q : exam.getQuestions()) {
-            correct.put(q.getId(), q.getCorrectAnswer());
+        if (exam.getQuestions() != null) {
+            for (Question q : exam.getQuestions()) {
+                if (q != null && q.getId() != null) {
+                    correct.put(q.getId(), q.getCorrectAnswer());
+                }
+            }
         }
 
         int score = 0;
         for (AnswerDTO a : req.answers) {
-            if (correct.get(a.questionId).equalsIgnoreCase(a.answer)) {
+            if (a == null || a.questionId == null) continue;
+            String expected = correct.get(a.questionId);
+            String given = a.answer;
+            if (expected != null && given != null && expected.equalsIgnoreCase(given.trim())) {
                 score++;
             }
         }
@@ -60,7 +115,8 @@ public class ExamController {
         r.setExamId(examId);
         r.setUsername(req.username);
         r.setScore(score);
-        return resultRepo.save(r);
+        Result saved = resultRepo.save(r);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @GetMapping("/results")
